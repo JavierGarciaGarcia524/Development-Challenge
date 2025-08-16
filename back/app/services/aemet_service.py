@@ -54,7 +54,6 @@ class AEMET_Client:
                             segment_data = datos_response.json()
                             break
 
-
                 except Exception as e:
                     print(f"Attempt {attempt + 1} failed: {str(e)}")
                     if attempt == self.max_attempts - 1:

@@ -14,4 +14,8 @@ if data is None:
     print("No data available or an error occurred")
 else:
     print("Data obtained successfully:")
-    print(data)
+    print(data[0])
+    print(data[1])
+    print(data[2])
+    print(data[3])
+    print(data[4])
