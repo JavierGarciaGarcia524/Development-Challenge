@@ -26,11 +26,13 @@ def test_home(client):
     ]
 )
 def test_weather_missing_required_params(client, params):
+    # Case 1, test missing required query parameters
     res = client.get("/api/weather", query_string=params)
     assert res.status_code == 400
     assert "Missing basic parameters" in res.get_data(as_text=True)
 
 def test_weather_valid(client, monkeypatch):
+    # Case 2, test valid request with mocked AEMET data and processing
     # Mock AEMET_Client.get_weather_data
     class MockAemet:
         def get_weather_data(self, start, end, station):
@@ -58,6 +60,7 @@ def test_weather_valid(client, monkeypatch):
     assert data[0]["temp"] == 10
     
 def test_real_process(client):
+    # Case 3, test full API process with real request and data
     params = {
         "station": "89064",
         "init_date": "2024-01-01",

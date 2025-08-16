@@ -43,13 +43,11 @@ class Weather_Utils:
             df = Weather_Utils.column_selection(df, desired_features)
             # 2.- Temporal aggregation
             df = Weather_Utils.aggregate_weather_data(df, aggregation_value)
-            # 3.- Define index & order
+            # 3.- Define order
             df = df.sort_values('fhora').reset_index(drop=True)
             if pd.api.types.is_datetime64_any_dtype(df['fhora']):
                 df['fhora'] = df['fhora'].dt.strftime('%Y-%m-%dT%H:%M:%S%z')
 
-            # df = df.set_index('fhora').sort_index()
-            # df.index.name = 'fhora'
             return df
 
         except Exception as e:
@@ -109,7 +107,6 @@ class Weather_Utils:
         if aggregation_value == 'monthly':
             result['fhora'] = result['fhora'].dt.tz_convert('Europe/Madrid')    # Double check
 
-        # print(result.head(5))
         return result
     
     """ FUNCTION TO OBTAIN EQUIVALENCE FROM MADRID DAYS TO UTC TIME """

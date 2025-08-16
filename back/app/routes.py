@@ -46,7 +46,8 @@ def get_weather():
         return jsonify({"error": "No data available or an error occurred"}), 500
     
     df = weather_utils.process_aemet_data(raw_data, desired_features, aggregation_value)
-    print(df.head(5))
+    # Debugging
+    # print(df.head(5))
 
     if df is None:
         return jsonify({"error": "Data processing error"}), 500

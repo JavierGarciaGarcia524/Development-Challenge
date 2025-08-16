@@ -82,8 +82,10 @@ def test_daily_aggregation(weather_utils):
     
     result = weather_utils.process_aemet_data(daily_mock, [], 'daily')
     print(result.head(5))
-    # assert len(result) == 2  # Only 2 days
-    # assert result.loc['2024-01-01']['temp'] == 23  # Average of 22 and 24
+    assert len(result) == 2  # Only 2 days
+    
+    avrg_1st_january = result.iloc[0, 2]    # First instance, third value (1st january, temp) should contain the average (22-24) = 23
+    assert avrg_1st_january == 23
 
 def test_monthly_aggregation(weather_utils):
     # Case 6, test monthly aggregation
@@ -103,6 +105,7 @@ def test_monthly_aggregation(weather_utils):
 
 
 def test_timezone_conversion(weather_utils):
+    # Case 7, test timezone conversion
     tz_mock = [
         {"fhora": "2024-01-01T00:00:00UTC", "nombre": "Station1", "temp": 22.5}
     ]
@@ -131,8 +134,16 @@ def test_process_aemet_data_complete(aemet_client, weather_utils):
 
     # Show head for debugging
     print(df.head(5))
-    assert df is not None, "Result should not be none"
-    assert isinstance(df, pd.DataFrame), "Result should be a dataframe"
+    assert df is not None,                  "Result should not be none"
+    assert isinstance(df, pd.DataFrame),    "Result should be a dataframe"
+    assert df['fhora'].dtype == object or pd.api.types.is_datetime64_any_dtype(df['fhora']), \
+        f"'fhora' column should be datetime, got {df['fhora'].dtype}"
+    for col in ['temp', 'pres', 'vel']:
+        assert pd.api.types.is_numeric_dtype(df[col]), f"Column {col} should be numeric"
+    assert df['temp'].min() > -50 and df['temp'].max() < 60,    "Temperature values are unrealistic"
+    assert df['pres'].min() > 800 and df['pres'].max() < 1100,  "Pressure values are unrealistic"
+    assert df['vel'].min() >= 0,                                "Wind speed cannot be negative"
+
     """
     NOTE: The dataframe will contain the following columns:
     - 'fhora': The timestamp of the observation
