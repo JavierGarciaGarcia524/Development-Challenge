@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import pandas as pd
 import traceback
 
@@ -23,19 +24,18 @@ class Weather_Utils:
             if 'fhora' not in df.columns:
                 print("Error: The data does not contain the 'fhora' column")
                 return None
-
-            # Date processing
-            df['fhora'] = pd.to_datetime(df['fhora'], utc=True)
-            if time_zone != 'UTC':
-                df['fhora'] = df['fhora'].dt.tz_convert(time_zone)
-
+            
             # Select only the required columns, reduce the dataset
             cols_to_keep = ['fhora', 'nombre', 'temp', 'pres', 'vel']
             for col in cols_to_keep:
                 if col not in df.columns:
                     df[col] = pd.NA  # Create the column if missing
-
             df = df[cols_to_keep]
+            
+            # Date processing
+            df['fhora'] = pd.to_datetime(df['fhora'], utc=True)          # Parse UTC
+            df['fhora'] = df['fhora'].dt.tz_convert('Europe/Madrid')     # Convert Madrid
+            
             """ 
             Trying column selection, delete later
             """
@@ -44,8 +44,12 @@ class Weather_Utils:
             # 2.- Temporal aggregation
             df = Weather_Utils.aggregate_weather_data(df, aggregation_value)
             # 3.- Define index & order
-            df = df.set_index('fhora').sort_index()
-            df.index.name = 'fhora'
+            df = df.sort_values('fhora').reset_index(drop=True)
+            if pd.api.types.is_datetime64_any_dtype(df['fhora']):
+                df['fhora'] = df['fhora'].dt.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+            # df = df.set_index('fhora').sort_index()
+            # df.index.name = 'fhora'
             return df
 
         except Exception as e:
@@ -103,11 +107,22 @@ class Weather_Utils:
         result = grouped[numeric_cols].mean().reset_index()
         
         if aggregation_value == 'monthly':
-            result['fhora'] = result['fhora'].dt.strftime('%Y-%m')
+            result['fhora'] = result['fhora'].dt.tz_convert('Europe/Madrid')    # Double check
 
         # print(result.head(5))
         return result
+    
+    """ FUNCTION TO OBTAIN EQUIVALENCE FROM MADRID DAYS TO UTC TIME """
+    @staticmethod
+    def madrid_dates_to_aemet_utc(init_date, end_date):
+        
+        init_madrid = datetime.fromisoformat(init_date + "T00:00:00").replace(tzinfo=ZoneInfo("Europe/Madrid"))
+        end_madrid  = datetime.fromisoformat(end_date + "T23:59:59").replace(tzinfo=ZoneInfo("Europe/Madrid"))
 
+        init_utc = init_madrid.astimezone(ZoneInfo("UTC"))
+        end_utc  = end_madrid.astimezone(ZoneInfo("UTC"))
 
+        init_str = init_utc.strftime("%Y-%m-%dT%H:%M:%S") + "UTC"
+        end_str  = end_utc.strftime("%Y-%m-%dT%H:%M:%S") + "UTC"
 
-
+        return init_str, end_str
