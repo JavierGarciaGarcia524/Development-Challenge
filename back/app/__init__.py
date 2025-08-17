@@ -15,11 +15,7 @@ def create_app():
         JSON_SORT_KEYS=False
     )
     
-    CORS(app, resources={
-        r"/api/*": {
-            "origins": os.getenv('CORS_ORIGINS', 'http://localhost:3000')       # Change when making frontend
-        }
-    })
+    CORS(app, resources={r"/api/*": {"origins": "*"}})      # Not safe for production, just used for development
     
     # Register API blueprint
     app.register_blueprint(api_blueprint, url_prefix='/api')

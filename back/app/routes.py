@@ -22,7 +22,7 @@ def get_weather():
     station = request.args.get('station')
     init_date = request.args.get('init_date')
     end_date = request.args.get('end_date')
-    desired_features = request.args.getlist('desired_features[]')       # list
+    desired_features = request.args.getlist('desired_features')         # list
     aggregation_value = request.args.get('aggregation_value', None)     # default None
     
     if not station or not init_date or not end_date:
