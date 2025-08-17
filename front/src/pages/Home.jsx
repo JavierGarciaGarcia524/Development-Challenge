@@ -4,6 +4,7 @@ import InfoSection from '../components/InfoSection';
 import SearchBar from '../components/SearchBar';
 import DataGrid from '../components/DataGrid';
 import Footer from '../components/Footer';
+import { fetchWeather } from '../services/api';
 
 export default function Home() {
   const [searchParams, setSearchParams] = useState({
@@ -14,18 +15,25 @@ export default function Home() {
     aggregation: 'Default',
   });
 
-  const historicalData = [
-    { station: 'Juan Carlos I', fecha: '2025-08-10', temperatura: 20, presion: 1015, viento: 5 },
-    { station: 'Juan Carlos I', fecha: '2025-08-11', temperatura: 22, presion: 1012, viento: 4 },
-    { station: 'Gabriel de Castilla', fecha: '2025-08-10', temperatura: 18, presion: 1018, viento: 6 },
-  ];
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const filteredData = historicalData.filter(row => {
-    const afterStart = searchParams.startDate ? row.fecha >= searchParams.startDate : true;
-    const beforeEnd = searchParams.endDate ? row.fecha <= searchParams.endDate : true;
-    const correctStation = row.station === searchParams.station;
-    return afterStart && beforeEnd && correctStation;
-  });
+  const handleSearch = async (params) => {
+    setLoading(true);         // show loading
+    setError(null);           // reset error
+    setSearchParams(params);  // update searchParams to keep inputs in sync
+
+    try {
+      const result = await fetchWeather(params);    // call your service
+      setData(result);        // save the obtained data
+    } catch (err) {
+      setError("Error fetching data");
+      setData([]);
+    } finally {
+      setLoading(false);      // stop showing loading
+    }
+  };
 
   return (
     <div style={{
@@ -38,8 +46,10 @@ export default function Home() {
         }}>
         <Header />
         <InfoSection />
-        <SearchBar setSearchParams={setSearchParams} />
-        <DataGrid data={filteredData} features={searchParams.features} />
+        <SearchBar setSearchParams={setSearchParams} onSearch={handleSearch} /> {/* Pass params and function to searchbar */}
+          {loading && <p style={{ textAlign: 'center' }}>Cargando datos...</p>}
+          {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+        <DataGrid data={data} features={searchParams.features} />
         <Footer />
         </div>
     );

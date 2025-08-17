@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export default function SearchBar({ setSearchParams }) {
+export default function SearchBar({ setSearchParams, onSearch }) {
   const today = new Date().toISOString().split('T')[0];
 
   const [startDate, setStartDate] = useState('');
@@ -25,14 +25,51 @@ export default function SearchBar({ setSearchParams }) {
     );
   };
 
-  const handleSearch = () => {
-    setSearchParams({
+  const handleSearchClick = () => {
+
+    if (!startDate || !endDate) {   // Make sure to get needed inputs
+      alert('Start and end dates are required.');
+      return;
+    }
+
+    const stationCodes = {  // Map station names to codes
+      'Juan Carlos I': 89064,
+      'Gabriel de Castilla': 89065
+    };
+    const stationCode = stationCodes[station] || station;
+
+    const aggregationMap = {
+      'Hourly': 'hourly',
+      'Daily': 'daily',
+      'Monthly': 'monthly'
+    };
+    const parsedAggregation = aggregationMap[aggregation] || undefined;  // undefined if none
+
+    const featureCodes = {  // Map features to their codes
+      'temperatura': 'temp',
+      'presion': 'pres',
+      'viento': 'vel'
+    };
+    const parsedFeatures = features.length > 0
+      ? features.map(f => featureCodes[f]).filter(Boolean)
+      : Object.values(featureCodes);
+
+
+    const params = {
       startDate,
       endDate,
-      station,
-      features,
-      aggregation,
-    });
+      station: stationCode,
+      features: parsedFeatures,
+      ...(parsedAggregation && { aggregation: parsedAggregation })  // Only include if defined,
+    };
+
+    // Update inputs
+    setSearchParams(params);
+
+    // Call the onSearch function to fetch from the backend
+    if (onSearch) {
+      onSearch(params);
+    }
   };
 
   return (
@@ -167,7 +204,7 @@ export default function SearchBar({ setSearchParams }) {
       {/* Button */}
       <div style={{ marginTop: '1.5rem', textAlign: 'right' }}>
         <button
-          onClick={handleSearch}
+          onClick={handleSearchClick}
           style={{
             backgroundColor: '#1e1e2f',
             color: '#fff',

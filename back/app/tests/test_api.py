@@ -65,7 +65,7 @@ def test_real_process(client):
         "station": "89064",
         "init_date": "2024-01-01",
         "end_date": "2024-01-31",
-        "desired_features[]": [],
+        "desired_features": [],
         "aggregation_value": None
     }
     
