@@ -32,6 +32,12 @@ export default function SearchBar({ setSearchParams, onSearch }) {
       return;
     }
 
+    if (new Date(startDate) > new Date(endDate)) {    // Avoid invalid parameters
+      alert('⚠️ Start date cannot be after End date!');
+      return;
+    }
+
+
     const stationCodes = {  // Map station names to codes
       'Juan Carlos I': 89064,
       'Gabriel de Castilla': 89065
